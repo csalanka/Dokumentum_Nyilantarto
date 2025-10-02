@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentum nyilvántartó</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .stats {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .stats strong {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 16px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #f9fafb;
+        }
+
+        .tab.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .icon-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:disabled {
+            background: #9ca3af !important;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #15803d;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .btn-purple {
+            background: #9333ea;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .btn-purple:hover {
+            background: #7e22ce;
+        }
+
+        .btn-orange {
+            background: #ea580c;
+            color: white;
+            width: auto;
+            padding: 12px 24px;
+            white-space: nowrap;
+        }
+
+        .btn-orange:hover:not(:disabled) {
+            background: #c2410c;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .list-item {
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .list-item:hover {
+            background: #f9fafb;
+        }
+
+        .list-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .list-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .list-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-title {
+            font-weight: 600;
+            color: #1f2937;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 4px;
+        }
+
+        .list-meta {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+        }
+
+        .preview-search {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .preview-search input {
+            flex: 1;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: #1f2937;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            width: auto;
+            padding: 0;
+        }
+
+        .close-btn:hover {
+            color: #1f2937;
+        }
+
+        .preview-icon-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preview-item {
+            margin-bottom: 12px;
+        }
+
+        .preview-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .preview-value {
+            color: #1f2937;
+            word-break: break-word;
+        }
+
+        .preview-link {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .preview-link:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn-group button {
+            flex: 1;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .scroll-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 8px;
+            }
+            .card {
+                padding: 16px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            h2 {
+                font-size: 18px;
+            }
+            .btn-orange span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📁 Dokumentum nyilvántartó</h1>
+            <p class="subtitle">Családi dokumentumok kezelése</p>
+            <div class="stats">
+                Rekordok száma: <strong id="recordCount">0</strong> | 
+                Következő DSZ: <strong id="nextDSZ">D0001</strong>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('form')">➕ Új dokumentum</button>
+            <button class="tab" onclick="switchTab('list')">📋 Lista (<span id="listCount">0</span>)</button>
+        </div>
+
+        <div id="formTab" class="card">
+            <h2>Új dokumentum hozzáadása</h2>
+            <div class="form-group">
+                <label>Személy ID <span class="required">*</span></label>
+                <input type="text" id="inputID" placeholder="pl. 1">
+            </div>
+            <div class="form-group">
+                <label>Dokumentum neve <span class="required">*</span></label>
+                <input type="text" id="inputDokNev" placeholder="pl. Nagymama születési anyakönyvi kivonata">
+            </div>
+            <div class="form-group">
+                <label>Dátum</label>
+                <input type="date" id="inputDatum">
+            </div>
+            <div class="form-group">
+                <label>Kategória <span class="required">*</span></label>
+                <select id="inputKategoria" onchange="updateIconPreview()">
+                    <option value="Hivatalos dokumentum">Hivatalos dokumentum</option>
+                    <option value="Oklevél">Oklevél</option>
+                    <option value="Születési anyakönyvi kivonat">Születési anyakönyvi kivonat</option>
+                    <option value="Házassági anyakönyvi kivonat">Házassági anyakönyvi kivonat</option>
+                    <option value="Halotti anyakönyvi kivonat">Halotti anyakönyvi kivonat</option>
+                    <option value="Fénykép">Fénykép</option>
+                    <option value="Kitüntetés">Kitüntetés</option>
+                    <option value="Munkaviszony igazolás">Munkaviszony igazolás</option>
+                    <option value="Ingatlan dokumentum">Ingatlan dokumentum</option>
+                    <option value="Levelezés">Levelezés</option>
+                    <option value="Személyes írás">Személyes írás</option>
+                    <option value="Katonai dokumentum">Katonai dokumentum</option>
+                    <option value="Egyéb dátum">Egyéb dátum</option>
+                    <option value="Jogi dokumentum">Jogi dokumentum</option>
+                    <option value="Egészségügyi dokumentum">Egészségügyi dokumentum</option>
+                    <option value="Újságcikk">Újságcikk</option>
+                </select>
+                <div class="icon-preview" id="iconPreview"></div>
+            </div>
+            <div class="form-group">
+                <label>Google Drive Link</label>
+                <input type="url" id="inputLink" placeholder="https://drive.google.com/file/d/...">
+            </div>
+            <div class="form-group">
+                <label>Leírás</label>
+                <textarea id="inputLeiras" placeholder="Rövid leírás a dokumentumról..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Hely</label>
+                <input type="text" id="inputHely" placeholder="pl. Budapest">
+            </div>
+            <button class="btn-success" onclick="addDocument()">💾 Dokumentum hozzáadása</button>
+        </div>
+
+        <div id="listTab" class="card hidden">
+            <h2>Dokumentumok listája</h2>
+            <div id="documentList"></div>
+        </div>
+
+        <div class="card">
+            <h2>Műveletek</h2>
+            <button class="btn-primary" onclick="downloadCSV()" id="btnDownload">
+                ⬇️ CSV letöltése (<span id="downloadCount">0</span> rekord)
+            </button>
+            <label for="fileUpload" class="btn-purple" style="cursor: pointer; margin-top: 12px;">
+                ⬆️ CSV beolvasása
+            </label>
+            <input type="file" id="fileUpload" accept=".csv,text/csv,text/plain,*/*" onchange="uploadCSV(event)">
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 16px; margin-top: 16px;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Dokumentum előnézet DSZ alapján</h3>
+                <div class="preview-search">
+                    <input type="text" id="previewDSZ" placeholder="pl. D0001">
+                    <button class="btn-orange" onclick="showPreview()" id="btnPreview">👁️ <span>Előnézet</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="previewModal" class="modal" onclick="closeModalOnBackground(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Dokumentum előnézet</h3>
+                <button class="close-btn" onclick="closePreview()">×</button>
+            </div>
+            <div id="previewContent"></div>
+            <button class="btn-primary" onclick="closePreview()" style="margin-top: 16px;">Bezárás</button>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal" onclick="closeModalOnBackground(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Dokumentum szerkesztése</h3>
+                <button class="close-btn" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>DSZ</label>
+                <input type="text" id="editDSZ" disabled style="background: #f3f4f6;">
+            </div>
+            <div class="form-group">
+                <label>Személy ID <span class="required">*</span></label>
+                <input type="text" id="editID" placeholder="pl. 1">
+            </div>
+            <div class="form-group">
+                <label>Dokumentum neve <span class="required">*</span></label>
+                <input type="text" id="editDokNev" placeholder="pl. Nagymama születési anyakönyvi kivonata">
+            </div>
+            <div class="form-group">
+                <label>Dátum</label>
+                <input type="date" id="editDatum">
+            </div>
+            <div class="form-group">
+                <label>Kategória <span class="required">*</span></label>
+                <select id="editKategoria" onchange="updateEditIconPreview()">
+                    <option value="Hivatalos dokumentum">Hivatalos dokumentum</option>
+                    <option value="Oklevél">Oklevél</option>
+                    <option value="Születési anyakönyvi kivonat">Születési anyakönyvi kivonat</option>
+                    <option value="Házassági anyakönyvi kivonat">Házassági anyakönyvi kivonat</option>
+                    <option value="Halotti anyakönyvi kivonat">Halotti anyakönyvi kivonat</option>
+                    <option value="Fénykép">Fénykép</option>
+                    <option value="Kitüntetés">Kitüntetés</option>
+                    <option value="Munkaviszony igazolás">Munkaviszony igazolás</option>
+                    <option value="Ingatlan dokumentum">Ingatlan dokumentum</option>
+                    <option value="Levelezés">Levelezés</option>
+                    <option value="Személyes írás">Személyes írás</option>
+                    <option value="Katonai dokumentum">Katonai dokumentum</option>
+                    <option value="Egyéb dátum">Egyéb dátum</option>
+                    <option value="Jogi dokumentum">Jogi dokumentum</option>
+                    <option value="Egészségügyi dokumentum">Egészségügyi dokumentum</option>
+                    <option value="Újságcikk">Újságcikk</option>
+                </select>
+                <div class="icon-preview" id="editIconPreview"></div>
+            </div>
+            <div class="form-group">
+                <label>Google Drive Link</label>
+                <input type="url" id="editLink" placeholder="https://drive.google.com/file/d/...">
+            </div>
+            <div class="form-group">
+                <label>Leírás</label>
+                <textarea id="editLeiras" placeholder="Rövid leírás a dokumentumról..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Hely</label>
+                <input type="text" id="editHely" placeholder="pl. Budapest">
+            </div>
+            <div class="btn-group">
+                <button class="btn-success" onclick="saveEdit()">💾 Mentés</button>
+                <button class="btn-danger" onclick="deleteRecord()">🗑️ Törlés</button>
+            </div>
+            <button class="btn-secondary" onclick="closeEditModal()" style="margin-top: 8px;">Mégse</button>
+        </div>
+    </div>
+
+    <script>
+        let records = [];
+        let currentEditIndex = -1;
+
+        const CATEGORY_ICONS = {
+            'Hivatalos dokumentum': { icon: '📄' },
+            'Oklevél': { icon: '🎓' },
+            'Születési anyakönyvi kivonat': { icon: '👶' },
+            'Házassági anyakönyvi kivonat': { icon: '❤️' },
+            'Halotti anyakönyvi kivonat': { icon: '🔥' },
+            'Fénykép': { icon: '📷' },
+            'Kitüntetés': { icon: '🏆' },
+            'Munkaviszony igazolás': { icon: '💼' },
+            'Ingatlan dokumentum': { icon: '🏠' },
+            'Levelezés': { icon: '✉️' },
+            'Személyes írás': { icon: '📖' },
+            'Katonai dokumentum': { icon: '🛡️' },
+            'Egyéb dátum': { icon: '📅' },
+            'Jogi dokumentum': { icon: '⚖️' },
+            'Egészségügyi dokumentum': { icon: '💗' },
+            'Újságcikk': { icon: '📰' }
+        };
+
+        function getIconForCategory(category) {
+            return CATEGORY_ICONS[category] || CATEGORY_ICONS['Hivatalos dokumentum'];
+        }
+
+        function generateDSZ() {
+            if (records.length === 0) return 'D0001';
+            const maxDSZ = Math.max(...records.map(r => parseInt(r.DSZ.replace('D', ''))));
+            return `D${String(maxDSZ + 1).padStart(4, '0')}`;
+        }
+
+        function updateStats() {
+            const count = records.length;
+            document.getElementById('recordCount').textContent = count;
+            document.getElementById('listCount').textContent = count;
+            document.getElementById('downloadCount').textContent = count;
+            document.getElementById('nextDSZ').textContent = generateDSZ();
+            document.getElementById('btnDownload').disabled = count === 0;
+            document.getElementById('btnPreview').disabled = count === 0;
+        }
+
+        function updateIconPreview() {
+            const kategoria = document.getElementById('inputKategoria').value;
+            const iconData = getIconForCategory(kategoria);
+            document.getElementById('iconPreview').innerHTML = `<span style="font-size: 20px;">${iconData.icon}</span><span>Kiválasztott ikon</span>`;
+        }
+
+        function updateEditIconPreview() {
+            const kategoria = document.getElementById('editKategoria').value;
+            const iconData = getIconForCategory(kategoria);
+            document.getElementById('editIconPreview').innerHTML = `<span style="font-size: 20px;">${iconData.icon}</span><span>Kiválasztott ikon</span>`;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('formTab').classList.add('hidden');
+            document.getElementById('listTab').classList.add('hidden');
+            if (tab === 'form') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('formTab').classList.remove('hidden');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('listTab').classList.remove('hidden');
+                renderList();
+            }
+        }
+
+        function addDocument() {
+            const id = document.getElementById('inputID').value.trim();
+            const dokNev = document.getElementById('inputDokNev').value.trim();
+            const kategoria = document.getElementById('inputKategoria').value;
+            if (!id || !dokNev || !kategoria) {
+                alert('Kérlek töltsd ki az ID, Dokumentum név és Kategória mezőket!');
+                return;
+            }
+            const newRecord = {
+                ID: id,
+                DSZ: generateDSZ(),
+                DokNev: dokNev,
+                Datum: document.getElementById('inputDatum').value,
+                Kategoria: kategoria,
+                Link: document.getElementById('inputLink').value.trim(),
+                Leiras: document.getElementById('inputLeiras').value.trim(),
+                Hely: document.getElementById('inputHely').value.trim()
+            };
+            records.push(newRecord);
+            const savedID = id;
+            document.getElementById('inputDokNev').value = '';
+            document.getElementById('inputDatum').value = '';
+            document.getElementById('inputKategoria').value = 'Hivatalos dokumentum';
+            document.getElementById('inputLink').value = '';
+            document.getElementById('inputLeiras').value = '';
+            document.getElementById('inputHely').value = '';
+            document.getElementById('inputID').value = savedID;
+            updateIconPreview();
+            updateStats();
+            alert(`Dokumentum sikeresen hozzáadva! DSZ: ${newRecord.DSZ}`);
+        }
+
+        function renderList() {
+            const container = document.getElementById('documentList');
+            if (records.length === 0) {
+                container.innerHTML = '<div class="empty-state">Még nincs hozzáadott dokumentum</div>';
+                return;
+            }
+            container.innerHTML = '<div class="scroll-list">' + records.map((record, index) => {
+                const iconData = getIconForCategory(record.Kategoria);
+                return `<div class="list-item" onclick="openEditModal(${index})"><div class="list-content"><div class="list-icon" style="font-size: 24px;">${iconData.icon}</div><div class="list-text"><div class="list-title">${record.DSZ} - ${record.DokNev}</div><div class="list-meta">ID: ${record.ID} | ${record.Kategoria}</div>${record.Datum ? `<div class="list-meta">${record.Datum}</div>` : ''}</div></div></div>`;
+            }).join('') + '</div>';
+        }
+
+        function downloadCSV() {
+            if (records.length === 0) {
+                alert('Nincs mentendő rekord!');
+                return;
+            }
+            const csv = Papa.unparse(records, {
+                columns: ['ID', 'DSZ', 'DokNev', 'Datum', 'Kategoria', 'Link', 'Leiras', 'Hely']
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const today = new Date().toISOString().split('T')[0];
+            link.href = URL.createObjectURL(blob);
+            link.download = `Doknyilvantarto_${today}.csv`;
+            link.click();
+        }
+
+        function uploadCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    records = results.data;
+                    updateStats();
+                    alert(`${results.data.length} rekord sikeresen betöltve!`);
+                    event.target.value = '';
+                },
+                error: (error) => {
+                    alert('Hiba a CSV beolvasásakor: ' + error.message);
+                    event.target.value = '';
+                }
+            });
+        }
+
+        function showPreview() {
+            const dsz = document.getElementById('previewDSZ').value.trim();
+            if (!dsz) {
+                alert('Add meg a DSZ-t!');
+                return;
+            }
+            const record = records.find(r => r.DSZ === dsz);
+            if (!record) {
+                alert('Nem található ilyen DSZ!');
+                return;
+            }
+            const iconData = getIconForCategory(record.Kategoria);
+            document.getElementById('previewContent').innerHTML = `
+                <div class="preview-icon-box">
+                    <div style="font-size: 48px;">${iconData.icon}</div>
+                    <div><div style="font-weight: 600;">${record.Kategoria}</div><div style="font-size: 14px; color: #6b7280;">${record.DSZ}</div></div>
+                </div>
+                <div class="preview-item"><span class="preview-label">Név:</span><div class="preview-value">${record.DokNev}</div></div>
+                <div class="preview-item"><span class="preview-label">ID:</span><div class="preview-value">${record.ID}</div></div>
+                ${record.Datum ? `<div class="preview-item"><span class="preview-label">Dátum:</span><div class="preview-value">${record.Datum}</div></div>` : ''}
+                ${record.Hely ? `<div class="preview-item"><span class="preview-label">Hely:</span><div class="preview-value">${record.Hely}</div></div>` : ''}
+                ${record.Leiras ? `<div class="preview-item"><span class="preview-label">Leírás:</span><div class="preview-value">${record.Leiras}</div></div>` : ''}
+                ${record.Link ? `<div class="preview-item"><span class="preview-label">Link:</span><div class="preview-value"><a href="${record.Link}" target="_blank" class="preview-link">${record.Link}</a></div></div>` : ''}
+            `;
+            document.getElementById('previewModal').classList.add('show');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('show');
+        }
+
+        function openEditModal(index) {
+            currentEditIndex = index;
+            const record = records[index];
+            document.getElementById('editDSZ').value = record.DSZ;
+            document.getElementById('editID').value = record.ID;
+            document.getElementById('editDokNev').value = record.DokNev;
+            document.getElementById('editDatum').value = record.Datum || '';
+            document.getElementById('editKategoria').value = record.Kategoria;
+            document.getElementById('editLink').value = record.Link || '';
+            document.getElementById('editLeiras').value = record.Leiras || '';
+            document.getElementById('editHely').value = record.Hely || '';
+            updateEditIconPreview();
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            currentEditIndex = -1;
+        }
+
+        function saveEdit() {
+            if (currentEditIndex === -1) return;
+            const id = document.getElementById('editID').value.trim();
+            const dokNev = document.getElementById('editDokNev').value.trim();
+            const kategoria = document.getElementById('editKategoria').value;
+            if (!id || !dokNev || !kategoria) {
+                alert('Kérlek töltsd ki az ID, Dokumentum név és Kategória mezőket!');
+                return;
+            }
+            records[currentEditIndex] = {
+                ID: id,
+                DSZ: records[currentEditIndex].DSZ,
+                DokNev: dokNev,
+                Datum: document.getElementById('editDatum').value,
+                Kategoria: kategoria,
+                Link: document.getElementById('editLink').value.trim(),
+                Leiras: document.getElementById('editLeiras').value.trim(),
+                Hely: document.getElementById('editHely').value.trim()
+            };
+            closeEditModal();
+            renderList();
+            alert('Dokumentum sikeresen frissítve!');
+        }
+
+        function deleteRecord() {
+            if (currentEditIndex === -1) return;
+            const record = records[currentEditIndex];
+            if (confirm(`Biztosan törlöd ezt a dokumentumot?\n\n${record.DSZ} - ${record.DokNev}`)) {
+                records.splice(currentEditIndex, 1);
+                closeEditModal();
+                updateStats();
+                renderList();
+                alert('Dokumentum törölve!');
+            }
+        }
+
+        function closeModalOnBackground(event) {
+            if (event.target.id === 'previewModal') {
+                closePreview();
+            } else if (event.target.id === 'editModal') {
+                closeEditModal();
+            }
+        }
+
+        updateIconPreview();
+        updateStats();
+    </script>
+</body>
+</html>
